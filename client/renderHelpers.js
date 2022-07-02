@@ -1,4 +1,4 @@
-import { fetchAllPlayers } from './ajaxHelpers';
+import { fetchAllPlayers, fetchSinglePlayer, removePlayer } from './ajaxHelpers';
 
 const playerContainer = document.getElementById('all-players-container');
 const newPlayerFormContainer = document.getElementById('new-player-form');
@@ -36,13 +36,34 @@ export const renderAllPlayers = (playerList) => {
   let detailButtons = [...document.getElementsByClassName('detail-button')];
   for (let i = 0; i < detailButtons.length; i++) {
     const button = detailButtons[i];
+
     button.addEventListener('click', async () => {
+
+      const singlePuppy = await fetchSinglePlayer(button.dataset.id) 
+      console.log(button.dataset.id)
+      console.log(await singlePuppy)
+      renderSinglePlayer(singlePuppy);
       /*
         YOUR CODE HERE
       */
     });
   }
 };
+
+
+let deleteButtons = [...document.getElementsByClassName('delete-button')]
+for (let i = 0; i < deleteButtons.length; i++){
+  const button = deleteButtons[i]
+  
+  button.addEventListener('click', async () => {
+    await removePlayer(button.dataset.id);
+    const players = await fetchAllPlayers();
+    renderAllPlayers(players);
+
+  })
+}
+
+
 
 export const renderSinglePlayer = (playerObj) => {
   if (!playerObj || !playerObj.id) {
@@ -82,6 +103,38 @@ export const renderNewPlayerForm = () => {
 
   let form = document.querySelector('#new-player-form > form');
   form.addEventListener('submit', async (event) => {
+    event.preventDefault()
+
+    let playerData =  {
+
+      name:form.elements.name.value,
+      breed: form.elements.breed.value
+    }
+
+    try{
+      const response = await fetch(
+        `https://fsa-puppy-bowl.herokuapp.com/api/${cohortName}/`
+        {
+          method: 'POST',
+          headers: {
+            'Contenet-Type': 'application/json',
+
+          },
+          body: JSON.stringify({
+            name: playerData.name,
+            breed: playerData.breed,
+          }),
+        }
+      )
+      const result = await response.json()
+      console.log(result)
+    }catch(err){
+      console.error(err)
+    }
+
+    const players = await fetchAllPlayers()
+
+    renderNewPlayerForm()
     /*
       YOUR CODE HERE
     */
